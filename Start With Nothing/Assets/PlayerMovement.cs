@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -14,6 +15,15 @@ public class PlayerMovement : MonoBehaviour
 
     private bool m_Grounded = true;
 
+    float m_HorizontalMove = 0f;
+    private const float RUN_SPEED = 40f;
+    private bool m_Jump = false;
+    public Transform m_GroundCheck;
+    private const float GROUNDED_RADIUS = 0.07f;
+
+    [SerializeField] private LayerMask m_GroundLayer;
+
+
     private void Awake()
     {
         m_PlayerAnimation = GetComponentInChildren<PlayerAnimation>();
@@ -23,26 +33,51 @@ public class PlayerMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.RightArrow))
+
+        m_HorizontalMove = Input.GetAxisRaw("Horizontal") * RUN_SPEED;
+
+        if (Mathf.Abs(m_HorizontalMove) > 0)
         {
             m_PlayerAnimation.Run();
         }
-
-        if (Input.GetKeyUp(KeyCode.RightArrow))
+        else
         {
             m_PlayerAnimation.Idle();
         }
 
-        if (Input.GetKeyDown(KeyCode.LeftArrow))
+        if (Input.GetButtonDown("Jump"))
         {
-            m_PlayerAnimation.Run();
+            m_Jump = true;
+        }
+        else
+        {
+            m_Jump = false;
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        if (!m_Grounded)
+        {
+            bool wasGrounded = m_Grounded;
+            m_Grounded = false;
+
+            Collider2D[] colliders = Physics2D.OverlapCircleAll(m_GroundCheck.position, GROUNDED_RADIUS, m_GroundLayer);
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                if (colliders[i].gameObject != gameObject)
+                {
+                    if (!wasGrounded)
+                    {
+                        m_Grounded = true;
+                    }
+                }
+            }
         }
 
-        if (Input.GetKeyUp(KeyCode.LeftArrow))
-        {
-            m_PlayerAnimation.Idle();
 
-        }
+        Debug.Log("Grounded " + m_Grounded);
+        Move(m_HorizontalMove * Time.fixedDeltaTime, m_Jump);
     }
 
     private void Move(float _movement, bool _is_jumping)
@@ -71,6 +106,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void Flip()
     {
+        Debug.Log("Flip " + m_FacingRight);
         // Switch the way the player is labelled as facing.
         m_FacingRight = !m_FacingRight;
 
@@ -82,11 +118,5 @@ public class PlayerMovement : MonoBehaviour
         {
             m_PlayerAnimation.FaceRight();
         }
-
-
-        // Multiply the player's x local scale by -1.
-        Vector3 theScale = transform.localScale;
-        theScale.x *= -1;
-        transform.localScale = theScale;
     }
 }
