@@ -53,6 +53,11 @@ public class PlayerMovement : MonoBehaviour
         {
             m_Jump = false;
         }
+
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            EventManager.FireOnInteract();
+        }
     }
 
     private void FixedUpdate()
