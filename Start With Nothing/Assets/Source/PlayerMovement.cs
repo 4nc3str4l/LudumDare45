@@ -76,7 +76,6 @@ public class PlayerMovement : MonoBehaviour
         }
 
 
-        Debug.Log("Grounded " + m_Grounded);
         Move(m_HorizontalMove * Time.fixedDeltaTime, m_Jump);
     }
 
